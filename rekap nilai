@@ -1,0 +1,198 @@
+<%@ page import="java.sql.*" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rekap Nilai Siswa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f1f5f9;
+        }
+
+        .sidebar {
+            height: 100vh;
+            width: 250px;
+            position: fixed;
+            background-color: #1f2937;
+            padding-top: 20px;
+            color: white;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid #374151;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+        }
+
+        .sidebar a.active, .sidebar a:hover {
+            background-color: #374151;
+        }
+
+        .content {
+            margin-left: 260px;
+            padding: 20px;
+        }
+
+        .form-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        label {
+            margin-right: 10px;
+        }
+
+        select, input[type=submit] {
+            padding: 8px;
+            margin-right: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        input[type=submit] {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        input[type=submit]:hover {
+            background-color: #2563eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background-color: #111827;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2><img src="logo.png" alt="Logo" width="30"> Tadika Mesra</h2>
+    <a href="dashboard.jsp"><i class="fas fa-home"></i> Beranda</a>
+    <a href="#"><i class="fas fa-bullhorn"></i> Manajemen Pengumuman</a>
+    <a href="#"><i class="fas fa-calendar-alt"></i> Manajemen Jadwal</a>
+    <a href="#"><i class="fas fa-users"></i> Manajemen Siswa</a>
+    <a href="#"><i class="fas fa-chalkboard-teacher"></i> Manajemen Guru</a>
+    <a href="#"><i class="fas fa-chart-line"></i> Manajemen Laporan Akademik</a>
+    <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+</div>
+
+<div class="content">
+    <div class="form-box">
+        <h2>Rekap Nilai Siswa</h2>
+        <form method="get" action="RekapNilaiGuru.jsp">
+            <label for="kelas">Pilih Kelas:</label>
+            <select name="kelas">
+                <option value="1">Kelas 1</option>
+                <option value="2">Kelas 2</option>
+                <option value="3">Kelas 3</option>
+                <option value="4">Kelas 4</option>
+            </select>
+            <label for="mapel">Pilih Mapel:</label>
+            <select name="mapel">
+                <option value="1">Matematika</option>
+                <option value="2">Bahasa Indonesia</option>
+                <option value="3">IPA</option>
+                <option value="4">IPS</option>
+            </select>
+            <input type="submit" value="Tampilkan Nilai">
+        </form>
+    </div>
+
+<%
+    String kelasId = request.getParameter("kelas");
+    String mapelId = request.getParameter("mapel");
+
+    if(kelasId != null && mapelId != null) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            int kelas = Integer.parseInt(kelasId);
+            int mapel = Integer.parseInt(mapelId);
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/tadika_mesra", "root", "");
+
+            String query = "SELECT s.nama AS nama_siswa, n.nilai FROM nilai n " +
+                           "JOIN siswa s ON n.siswa_id = s.siswa_id " +
+                           "WHERE s.kelas_id = ? AND n.mapel_id = ?";
+            pstmt = conn.prepareStatement(query);
+            pstmt.setInt(1, kelas);
+            pstmt.setInt(2, mapel);
+            rs = pstmt.executeQuery();
+%>
+    <table>
+        <thead>
+            <tr>
+                <th>Nama Siswa</th>
+                <th>Nilai</th>
+            </tr>
+        </thead>
+        <tbody>
+<%
+            while(rs.next()) {
+%>
+            <tr>
+                <td><%= rs.getString("nama_siswa") %></td>
+                <td><%= rs.getInt("nilai") %></td>
+            </tr>
+<%
+            }
+        } catch(Exception e) {
+%>
+            <p style="color:red;">Terjadi kesalahan: <%= e.getMessage() %></p>
+<%
+        } finally {
+            if(rs != null) try { rs.close(); } catch(Exception e) {}
+            if(pstmt != null) try { pstmt.close(); } catch(Exception e) {}
+            if(conn != null) try { conn.close(); } catch(Exception e) {}
+        }
+    }
+%>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
