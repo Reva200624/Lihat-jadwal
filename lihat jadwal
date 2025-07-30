@@ -1,1 +1,98 @@
+<%@ page import="java.sql.*" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
+<html>
+<head>
+    <title>Lihat Jadwal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+        }
+        .main {
+            margin-left: 240px;
+            padding: 25px;
+        }
+        .header {
+            background: #f1f5f9;
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        th {
+            background-color: #f1f5f9;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<jsp:include page="sidebarGuru.jsp" />
+
+<!-- MAIN CONTENT -->
+<div class="main">
+    <div class="header">
+        <h2>Jadwal Mengajar</h2>
+    </div>
+
+    <table>
+        <tr>
+            <th>No</th>
+            <th>Mata Pelajaran</th>
+            <th>Hari</th>
+            <th>Jam</th>
+            <th>Kelas</th>
+        </tr>
+        <%
+            Connection conn = null;
+            Statement stmt = null;
+            ResultSet rs = null;
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/tadika_mesra", "root", "");
+                stmt = conn.createStatement();
+                String query = "SELECT mp.nama_mapel, j.hari, CONCAT(j.jam_mulai,' - ',j.jam_selesai) AS jam, k.nama_kelas " +
+                               "FROM jadwal j " +
+                               "JOIN mata_pelajaran mp ON j.mapel_id = mp.mapel_id " +
+                               "JOIN kelas k ON j.kelas_id = k.kelas_id";
+                rs = stmt.executeQuery(query);
+                int no = 1;
+                while(rs.next()) {
+        %>
+        <tr>
+            <td><%= no++ %></td>
+            <td><%= rs.getString("nama_mapel") %></td>
+            <td><%= rs.getString("hari") %></td>
+            <td><%= rs.getString("jam") %></td>
+            <td><%= rs.getString("nama_kelas") %></td>
+        </tr>
+        <%
+                }
+            } catch(Exception e) {
+                out.println("Error: " + e.getMessage());
+            } finally {
+                if(rs != null) rs.close();
+                if(stmt != null) stmt.close();
+                if(conn != null) conn.close();
+            }
+        %>
+    </table>
+</div>
+
+</body>
+</html>
 
